@@ -26,7 +26,7 @@ def create_flask_app(Config, enable_config_file=False):
         # 导入项目存放常量的文件
         from utils import constants
         # 参数1：配置文件环境变量名，参数2：报错不显示配置文件位置
-        app.config.from_envvar(constants.GLOBAL_SETTING_ENV_NAME, slice=True)
+        app.config.from_envvar(constants.GLOBAL_SETTING_ENV_NAME, silent=True)
 
     return app
 

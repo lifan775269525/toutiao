@@ -1,18 +1,10 @@
-# -*-Coding:UTF-8 -*-
-"""
-程序：鬼义头条的启动程序
-版本：1.0
-作者：鬼义虎神
-日期：2019年8月20日
-功能：
-    1. 返回所有的视图网址
-"""
 import os
 import sys
 
 # 设置命令行启动
 # 项目根目录：当前文件的上级目录的上级目录
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+print(BASE_DIR)
 # 将根目录下的common文件添加到python的系统目录下
 sys.path.insert(0, os.path.join(BASE_DIR, 'common'))
 
