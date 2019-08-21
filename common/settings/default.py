@@ -58,3 +58,9 @@ class DefaultConfig(object):
     DATACENTER_ID = 0
     WORKER_ID = 0
     SEQUENCE = 0
+
+    # 七牛云配置信息
+    QINIU_ACCESS_KEY = 'Nq3HpB1d0oxfhf6Qi-Qje_xFcBHwgf1aoFyEfaZi'
+    QINIU_SECRET_KEY = 'no2kz817gxXMt7oaqVb_1Cpsf8zCUeEM8pOIrFrd'
+    QINIU_BUCKET_NAME = 'heimatoutiao'
+    QINIU_DOMAIN = 'http://pwhkjlm5r.bkt.clouddn.com/'
