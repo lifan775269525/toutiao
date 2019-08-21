@@ -40,4 +40,13 @@ def create_app(Config, enable_config_file=False):
     """
     app = create_flask_app(Config, enable_config_file)
     """项目运行需要的配置"""
+    # 配置日志
+    from utils.logging import create_logger
+    create_logger(app)
+
+    """注册蓝图"""
+    # 用户蓝图
+    from toutiao.resources.user import user_bp
+    app.register_blueprint(user_bp)
+
     return app
