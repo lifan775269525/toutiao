@@ -9,6 +9,8 @@
 """
 import time
 from datetime import datetime, timedelta
+
+from flask import g
 from flask_restful import Resource, current_app, reqparse, inputs
 
 from models import db
@@ -31,7 +33,6 @@ class AuthorizationResource(Resource):
         :param user_id: 用户id
         :return: token, refresh_token
         """
-        # generate_jwt(payload, expiry, secret=None)
         # 生成当前时间
         now = datetime.utcnow()
         exp = now + timedelta(hours=current_app.config.get('JWT_EXPIRY_HOURS'))
@@ -110,3 +111,18 @@ class AuthorizationResource(Resource):
 
         """返回响应"""
         return {'token': token, 'refresh_token': refresh_token}, 201
+
+    def put(self):
+        """更新token"""
+
+        # 获取userID
+        user_id = g.user_id
+        # 如果获取到了User_id，并且is_refresh_token说明我们仅仅需要生成业务Token
+        if user_id and g.is_refresh_token:
+            # 参数2：传入False表示不传参
+            token, refresh_token = self._generate_tokens(user_id, with_refresh_token=False)
+            print('token：', token)
+            print('refresh_token：', refresh_token)
+            return {'token': token, 'refresh_token': refresh_token}
+
+        pass
