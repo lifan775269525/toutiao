@@ -44,6 +44,30 @@ def create_app(Config, enable_config_file=False):
     from utils.logging import create_logger
     create_logger(app)
 
+    # 配置redis哨兵
+    from redis.sentinel import Sentinel
+    _sentinel = Sentinel(app.config.get('REDIS_SENTINELS'))
+    # 根据哨兵设置主、从服务
+    app.redis_master = _sentinel.master_for(app.config['REDIS_SENTINEL_SERVICE_NAME'])
+    app.redis_slave = _sentinel.slave_for(app.config['REDIS_SENTINEL_SERVICE_NAME'])
+    # Redis集群
+    from rediscluster import StrictRedisCluster
+    app.redis_cluster = StrictRedisCluster(startup_nodes=app.config['REDIS_CLUSTER'])
+
+    # MySQL数据库连接初始化
+    from models import db
+    db.init_app(app)
+
+    # 创建Snowflake ID worker--雪花算法
+    from utils.snowflake.id_worker import IdWorker
+    app.id_worker = IdWorker(app.config['DATACENTER_ID'],
+                             app.config['WORKER_ID'],
+                             app.config['SEQUENCE'])
+
+    """添加请求钩子"""
+    from utils.middlewares import jwt_authentication
+    app.before_request(jwt_authentication)
+
     """注册蓝图"""
     # 用户蓝图
     from toutiao.resources.user import user_bp
