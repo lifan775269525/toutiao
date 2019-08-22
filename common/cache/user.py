@@ -21,13 +21,17 @@
 """
 import json
 from flask import current_app
+from sqlalchemy.orm import load_only
 
 from . import constants
 from models.user import User
 
 
-class UserCache(object):
-    """用户的缓存数据工具类"""
+class BaseCache(object):
+    """
+    基础缓存数据工具类
+    其他工具类只需要更改__init__中的key和查询语句
+    """
 
     def __init__(self, user_id):
         self.key = 'user:{}:profile'.format(user_id)
@@ -44,9 +48,9 @@ class UserCache(object):
         if data:
             print('Redis有数据，开始判断是否有效')
             # 3.1进一步判断数据是否为无效数据，-1，缓存击穿
-            if data != '-1'.encode():
+            if data != b'-1':
                 # 3.2有效数据，转成字典；返回
-                return json.dumps(data)
+                return json.dumps(data.decode())
             else:
                 print('无效数据')
                 return None
@@ -96,7 +100,13 @@ class UserCache(object):
         """
         redis_client = current_app.redis_cluster
         try:
-            user = User.query.get(id=self.user_id)
+            # 这里可以进行SQL优化，但是优化后就需要把try-except改为if判断data
+            # data = User.query.options(load_only(User.mobile,
+            #                                     User.name,
+            #                                     User.profile_photo,
+            #                                     User.introduction,
+            #                                     User.certificate)).filter(User.id == self.user_id).first()
+            user = User.query.get(self.user_id)
             # 4.2如果有数据，把查询对象保存字典数据
             # 4.3转成json，存入redis中，缓存雪崩
             user_dict = dict(
@@ -108,10 +118,40 @@ class UserCache(object):
             )
             user_json = json.dumps(user_dict)
             print('有对应的数据，将数据存入Redis中，作为缓存。')
-            redis_client.setx(self.key, constants.UserCacheTTL.get_exp(), user_json)
+            exp = constants.UserCacheTTL.get_exp()
+            print('过期时间为：', exp)
+            redis_client.setex(self.key, exp, user_json)
             return user_dict
         # 4.4否则没数据，在redis`中存入无效数据-1,缓存击穿
         except Exception as err:
             print('没有对应的数据，在Redis中存入无效数据')
-            redis_client.setx(self.key, constants.UserNotExistCacheTTL.get_exp(), -1)
+            exp = constants.UserNotExistCacheTTL.get_exp()
+            print('过期时间为：', exp)
+            redis_client.setex(self.key, exp, -1)
             return None
+
+
+# 用户的缓存数据工具类
+class UserCache(BaseCache):
+    """用户的缓存数据工具类"""
+
+    def __init__(self, user_id):
+        self.key = 'user:{}:profile'.format(user_id)
+        self.user_id = user_id
+
+# 用户资料表的缓存数据工具类
+class UserProfilexCache(BaseCache):
+    """用户资料表的缓存数据工具类"""
+
+    def __init__(self, user_id):
+        self.key = 'user:{}:profilex'.format(user_id)
+        self.user_id = user_id
+
+
+# 用户状态的缓存数据工具类
+class UserStatusCache(BaseCache):
+    """用户状态的缓存数据工具类"""
+
+    def __init__(self, user_id):
+        self.key = 'user:{}:status'.format(user_id)
+        self.user_id = user_id

@@ -24,3 +24,5 @@ user_api.representation('application/json')(output_json)
 user_api.add_resource(passport.AuthorizationResource, '/v1_0/authorizations', endpoint='Authorization')
 # 上传头像
 user_api.add_resource(profle.PhotoResource, '/v1_0/user/photo', endpoint='Photo')
+# 获取用户信息
+user_api.add_resource(profle.UserResource, '/v1_0/users/<int(min=1):user_id>', endpoint='User')
