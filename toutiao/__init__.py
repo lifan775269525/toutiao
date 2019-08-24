@@ -8,6 +8,9 @@
     1. 利用工厂函数创建flask的app对象
 """
 from flask import Flask
+from concurrent.futures import ThreadPoolExecutor
+# 导入定时任务的调度器
+from apscheduler.schedulers.background import BackgroundScheduler
 
 
 # 创建原始的Flask对象的app
@@ -73,4 +76,14 @@ def create_app(Config, enable_config_file=False):
     from toutiao.resources.user import user_bp
     app.register_blueprint(user_bp)
 
+    """定时任务，每天3点更正我们redis和mysql的数据"""
+    # 初始化调度器，并配置最大开始10个线程(不指定，默认10个)
+    bg_scheduler = BackgroundScheduler(executor={'default': ThreadPoolExecutor()})
+    # 添加任务函数
+    # bg_scheduler.add_job('任务函数', '执行器', '执行周期时间')
+    # bg_scheduler.add_job('任务函数', 'cron', hours=3)  # 每天3点执行
+    from toutiao.aps_scheduler.statistic_data import fix_process
+    bg_scheduler.add_job(fix_process, 'date', args=[app])  # 为了测试让他立即执行
+    # 执行任务
+    bg_scheduler.start()
     return app
