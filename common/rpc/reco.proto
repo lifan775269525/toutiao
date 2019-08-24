@@ -1,0 +1,41 @@
+syntax = "proto3";
+
+// 相当于Python中定义一个类
+service UserRecommends {
+    // 定义一个函数，接收请求参数，返回相应数据
+    rpc user_recommends (UserRequest) returns (ArticleResponse) {
+    }
+}
+
+// 请求参数，message相当于python中的字段
+message UserRequest {
+    // 因为可能会有匿名用户，所以id不能是整型
+    string user_id = 1;
+    int32 channel_id = 2; // 频道ID
+    int32 article_num = 3; // 文章数量
+    int64 time_stamp = 4; // 时间戳
+}
+
+// 返回数据
+message ArticleResponse {
+    // 曝光埋点数据
+    string exposure = 1;
+    int64 time_stamp = 2;
+    // 响应文章列表
+    repeated Article recommends = 3;
+}
+
+// 文章列表
+message Article {
+    // 文章id
+    int32 article_id = 1;
+    // 自定义消息类型--关于文章的埋点
+    Track track = 2;
+}
+// 关于文章的埋点
+message Track {
+    string click = 1; // 点击行文
+    string collect = 2; // 收藏
+    string share = 3; //分享
+    string read = 4; //阅读
+}
